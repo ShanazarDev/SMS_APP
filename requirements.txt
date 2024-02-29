@@ -38,3 +38,5 @@ urllib3==2.2.1
 watchdog==3.0.0
 websocket-client==1.7.0
 websockets==11.0.3
+
+elevate~=0.1.3
