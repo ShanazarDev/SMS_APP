@@ -32,7 +32,7 @@ def send_sms(sms, number):
         messages.append(message)
 
     result = [m.SendSMS(message) for message in messages]
-    return result
+    return result and True
 
 
 if __name__ == '__main__':
