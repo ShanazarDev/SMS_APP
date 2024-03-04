@@ -14,7 +14,7 @@ m = init_state_machine()
 def send_sms(sms, number):
     sms_info = {
         "Class": -1,
-        "Unicode": False,
+        "Unicode": True,
         "Entries": [
             {
                 "ID": "ConcatenatedTextLong",
