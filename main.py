@@ -1,16 +1,41 @@
 import time
-
+from datetime import datetime
 from sms_by_modem import send_sms
 
+from loguru import logger
 import flet as ft
 
+LOG_FOLDER = 'log/'
 
+
+def info_filter(record):
+    return record["level"].name == "INFO" or record["level"].name == "SUCCESS"
+
+
+logger.add(LOG_FOLDER + 'info.log', filter=info_filter,
+           format="{time:MMMM D, YYYY > HH:mm:SS.SSSS} | {level} | {message}",
+           level="INFO",
+           rotation="1 day")
+
+
+def error_filter(record):
+    return record["level"].name == "ERROR" and not "traceback" in record["extra"]
+
+
+logger.add(LOG_FOLDER + 'error.log', filter=error_filter,
+           format="{time:MMMM D, YYYY > HH:mm:SS.SSSS} | {level} | {message}",
+           level="ERROR",
+           rotation="1 day")
+
+logger.info('Service Start')
+
+
+@logger.catch
 def main_ui(page: ft.Page):
     # Page Settings
     page.title = "SMS sender"
     page.window_maximizable = False
     page.window_resizable = False
-    # page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.window_width = 320
     page.window_height = 600
     page.theme_mode = "light"
@@ -19,43 +44,130 @@ def main_ui(page: ft.Page):
         phone = phone_number_input.value
         text = text_input.value
         if phone != '' and text != '':
+            logger.info(f"Sending one message! To: +993 {phone} sms: {text}")
             if send_sms(sms=f"{text_input.value}", number=f'+993{phone_number_input.value}'):
+                logger.success("Message successfully sent!")
                 phone_number_input.value = ''
                 text_input.value = ''
                 recent_send_list_view.controls.append(
-                    ft.Text(value=f"{send_sms_btn.data}\n--->  Phone: \t\t{phone}\n--->  SMS: \t\t{text}"))
+                    ft.Text(
+                        value=f"[{send_sms_btn.data}]: "
+                              f"\n\t\t\t[Phone]: \t\t{phone} \t\t "
+                              f"\n\t\t\t[SMS]: \t\t{text} \t\t "
+                              f"\n\t\t\t[TIME]: \t\t{datetime.now().strftime('%H:%M:%S')}"
+                    )
+                )
                 send_sms_btn.data += 1
                 page.update()
 
     def send_spam_sms_func(e: ft.ControlEvent):
+        logger.info("Starting Spam message")
         text = text_input.value
         c = 0
-        if spam_to_five_thousand.value:
-            with open('Numbers/N_5.txt', 'r') as n_5:
-                for n in n_5.readlines():
-                    t = n.split('\n')[0]
-                    if send_sms(sms=f"{text}", number=f'+993{t}'):
-                        recent_send_list_view.controls.append(ft.Text(f"Message sent ---> {t}"))
-                        time.sleep(1)
-                        c += 1
-                    page.update()
 
+        # 5.000
+        if spam_to_five_thousand.value:
+            logger.info(f"Spam to [5.000] sms, [text]: {text}")
+            for n in range(100):
+                # t = n.split('\n')[0]
+                if send_sms(sms=f"{text}", number=f'+99363376556'):
+                    c += 1
+                    logger.success(f"Message successfully sent to +993 63376556")
+                    recent_send_list_view.controls.append(
+                        ft.Text(
+                            value=f"[{c}]: "
+                                  f"\n\t\t\t[Phone]: \t\t+993 63376556 \t\t "
+                                  f"\n\t\t\t[TIME]: \t\t{datetime.now().strftime('%H:%M:%S')}"
+                        )
+                    )
+                    time.sleep(1)
+                else:
+                    send_sms(sms=f"{text}", number=f'+99363376556')
+                    c += 1
+                    logger.success(f"Message successfully sent to +993 63376556")
+                    recent_send_list_view.controls.append(
+                        ft.Text(
+                            value=f"[{c}]: "
+                                  f"\n\t\t\t[Phone]: \t\t+993 63376556 \t\t "
+                                  f"\n\t\t\t[TIME]: \t\t{datetime.now().strftime('%H:%M:%S')}"
+                        )
+                    )
+                    time.sleep(0.7)
+                page.update()
+
+            # with open('Numbers/N_5.txt', 'r') as n_5:
+            #     for n in n_5.readlines():
+            #         t = n.split('\n')[0]
+            #         if send_sms(sms=f"{text}", number=f'+993{t}'):
+            #             c += 1
+            #             logger.success(f"Message successfully sent to +993 {t}")
+            #             recent_send_list_view.controls.append(
+            #                 ft.Text(
+            #                     value=f"[{c}]: "
+            #                           f"\n\t\t\t[Phone]: \t\t+993 {t} \t\t "
+            #                           f"\n\t\t\t[TIME]: \t\t{datetime.now().strftime('%H:%M:%S')}"
+            #                 )
+            #             )
+            #             time.sleep(1)
+            #         page.update()
+
+        # 10.000
         elif spam_to_ten_thousand.value:
+            logger.info(f"Spam to [10.000] sms, [text]: {text}")
             with open('Numbers/N_10.txt', 'r') as n_10:
                 for n in n_10.readlines():
                     t = n.split('\n')[0]
-                    recent_send_list_view.controls.append(ft.Text(f"{t}"))
+                    if send_sms(sms=f"{text}", number=f'+993{t}'):
+                        c += 1
+                        logger.success(f"Message successfully sent to +993 {t}")
+                        recent_send_list_view.controls.append(
+                            ft.Text(
+                                value=f"[{c}]: "
+                                      f"\n\t\t\t[Phone]: \t\t+993 {t} \t\t "
+                                      f"\n\t\t\t[TIME]: \t\t{datetime.now().strftime('%H:%M:%S')}"
+                            )
+                        )
+                        time.sleep(1)
+                    page.update()
+
+        # 15.000
         elif spam_to_fifteen_thousand.value:
+            logger.info(f"Spam to [15.000] sms, [text]: {text}")
             with open('Numbers/N_15.txt', 'r') as n_15:
                 for n in n_15.readlines():
                     t = n.split('\n')[0]
-                    recent_send_list_view.controls.append(ft.Text(f"{t}"))
+                    if send_sms(sms=f"{text}", number=f'+993{t}'):
+                        c += 1
+                        logger.success(f"Message successfully sent to +993 {t}")
+                        recent_send_list_view.controls.append(
+                            ft.Text(
+                                value=f"[{c}]: "
+                                      f"\n\t\t\t[Phone]: \t\t+993 {t} \t\t "
+                                      f"\n\t\t\t[TIME]: \t\t{datetime.now().strftime('%H:%M:%S')}"
+                            )
+                        )
+                        time.sleep(1)
+                    page.update()
+
+        # 20.000
         elif spam_to_twenty_thousand.value:
+            logger.info(f"Spam to [20.000] sms, [text]: {text}")
             with open('Numbers/N_20.txt', 'r') as n_20:
                 for n in n_20.readlines():
                     t = n.split('\n')[0]
-                    recent_send_list_view.controls.append(ft.Text(f"{t}"))
-        print(c)
+                    if send_sms(sms=f"{text}", number=f'+993{t}'):
+                        c += 1
+                        logger.success(f"Message successfully sent to +993 {t}")
+                        recent_send_list_view.controls.append(
+                            ft.Text(
+                                value=f"[{c}]: "
+                                      f"\n\t\t\t[Phone]: \t\t+993 {t} \t\t "
+                                      f"\n\t\t\t[TIME]: \t\t{datetime.now().strftime('%H:%M:%S')}"
+                            )
+                        )
+                        time.sleep(1)
+                    page.update()
+        logger.info("All done!")
         page.update()
 
     def checkboxes_func(e: ft.ControlEvent):

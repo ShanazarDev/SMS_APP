@@ -31,9 +31,14 @@ def send_sms(sms, number):
         message["Number"] = number
         messages.append(message)
 
-    result = [m.SendSMS(message) for message in messages]
-    return result and True
+    try:
+        result = [m.SendSMS(message) for message in messages]
+        print("good")
+        return result and True
+    except gammu.ERR_UNKNOWN as ex:
+        print("error")
+        return False
 
 
 if __name__ == '__main__':
-    send_sms('Hello', '99363376556')
+    send_sms('Hello', '+99363376556')
