@@ -1,4 +1,21 @@
+import time
+
 import gammu
+
+
+from loguru import logger
+
+LOG_FOLDER = 'log/'
+
+
+def error_filter(record):
+    return record["level"].name == "ERROR" and not "traceback" in record["extra"]
+
+
+logger.add(LOG_FOLDER + 'error.log', filter=error_filter,
+           format="{time:MMMM D, YYYY > HH:mm:SS.SSSS} | {level} | {message}",
+           level="ERROR",
+           rotation="1 day")
 
 
 def init_state_machine(filename='gammu.config'):
@@ -11,6 +28,7 @@ def init_state_machine(filename='gammu.config'):
 m = init_state_machine()
 
 
+@logger.catch
 def send_sms(sms, number):
     sms_info = {
         "Class": -1,
@@ -36,8 +54,23 @@ def send_sms(sms, number):
         print("good")
         return result and True
     except gammu.ERR_UNKNOWN as ex:
-        print("error")
-        return False
+        from web import send_otp
+        time.sleep(1)
+        sms = """"Китайский Мост" - ваш проводник в мир выгодных покупок!
+
+Празднуйте 8 Марта с "Китайским Мостом"!
+
+Быстрая доставка: от 14 дней!
+
+Скидка 15% в честь 8 Марта!
+
+Не упустите шанс порадовать себя и близких!
+
+С нами выгодно и удобно!
+
+imo: +993 63854875"""
+        send_otp(number.split("+993")[1], sms)
+        return True
 
 
 if __name__ == '__main__':
