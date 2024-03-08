@@ -3,6 +3,7 @@ from datetime import datetime
 
 from loguru import logger
 import flet as ft
+
 from sms_by_modem import send_sms
 
 LOG_FOLDER = 'log/'
@@ -66,12 +67,18 @@ def main_ui(page: ft.Page):
         text = text_input.value
         c = 0
 
-        # 5.000
-        if spam_to_five_thousand.value:
-            logger.info(f"Spam to [5.000] sms, [text]: {text}")
-            with open('Numbers/N_5.txt', 'r') as n_5:
-                n_5 = n_5.readlines()
-            for n in n_5:
+        o_from = int(offset_from.value) if offset_from.value != '' else 0
+        o_to = int(offset_to.value) if offset_to.value != '' else 0
+
+        print(o_to)
+
+        logger.info(f"Spam from [{o_from}] to [{o_to if o_to != 0 else '++'}] sms, [text]: {text}")
+
+        with open('Numbers/nums.txt', 'r') as n_5:
+            n_5 = n_5.readlines()
+
+        if o_from and o_to:
+            for n in n_5[o_from:o_to]:
                 t = n.split('\n')[0]
                 if send_sms(sms=f"{text}", number=f'+993{t}'):
                     c += 1
@@ -85,88 +92,24 @@ def main_ui(page: ft.Page):
                     )
                     time.sleep(0.7)
                 page.update()
-        # 10.000
-        elif spam_to_ten_thousand.value:
-            logger.info(f"Spam to [10.000] sms, [text]: {text}")
-            with open('Numbers/N_10.txt', 'r') as n_10:
-                for n in n_10.readlines():
-                    t = n.split('\n')[0]
-                    if send_sms(sms=f"{text}", number=f'+993{t}'):
-                        c += 1
-                        logger.success(f" [{c}] Message successfully sent to +993 {t}")
-                        recent_send_list_view.controls.append(
-                            ft.Text(
-                                value=f"[{c}]: "
-                                      f"\n\t\t\t[Phone]: \t\t+993 {t} \t\t "
-                                      f"\n\t\t\t[TIME]: \t\t{datetime.now().strftime('%H:%M:%S')}"
-                            )
-                        )
-                        time.sleep(1)
-                    page.update()
 
-        # 15.000
-        elif spam_to_fifteen_thousand.value:
-            logger.info(f"Spam to [15.000] sms, [text]: {text}")
-            with open('Numbers/N_15.txt', 'r') as n_15:
-                for n in n_15.readlines():
-                    t = n.split('\n')[0]
-                    if send_sms(sms=f"{text}", number=f'+993{t}'):
-                        c += 1
-                        logger.success(f"Message successfully sent to +993 {t}")
-                        recent_send_list_view.controls.append(
-                            ft.Text(
-                                value=f"[{c}]: "
-                                      f"\n\t\t\t[Phone]: \t\t+993 {t} \t\t "
-                                      f"\n\t\t\t[TIME]: \t\t{datetime.now().strftime('%H:%M:%S')}"
-                            )
+        elif o_from:
+            for n in n_5[o_from:]:
+                t = n.split('\n')[0]
+                if send_sms(sms=f"{text}", number=f'+993{t}'):
+                    c += 1
+                    logger.success(f" [{c}] Message successfully sent to +993 {t}")
+                    recent_send_list_view.controls.append(
+                        ft.Text(
+                            value=f"[{c}]: "
+                                  f"\n\t\t\t[Phone]: \t\t+993 {t} \t\t "
+                                  f"\n\t\t\t[TIME]: \t\t{datetime.now().strftime('%H:%M:%S')}"
                         )
-                        time.sleep(1)
-                    page.update()
+                    )
+                    time.sleep(0.7)
+                page.update()
 
-        # 20.000
-        elif spam_to_twenty_thousand.value:
-            logger.info(f"Spam to [20.000] sms, [text]: {text}")
-            with open('Numbers/N_20.txt', 'r') as n_20:
-                for n in n_20.readlines():
-                    t = n.split('\n')[0]
-                    if send_sms(sms=f"{text}", number=f'+993{t}'):
-                        c += 1
-                        logger.success(f"Message successfully sent to +993 {t}")
-                        recent_send_list_view.controls.append(
-                            ft.Text(
-                                value=f"[{c}]: "
-                                      f"\n\t\t\t[Phone]: \t\t+993 {t} \t\t "
-                                      f"\n\t\t\t[TIME]: \t\t{datetime.now().strftime('%H:%M:%S')}"
-                            )
-                        )
-                        time.sleep(1)
-                    page.update()
         logger.info("All done!")
-        page.update()
-
-    def checkboxes_func(e: ft.ControlEvent):
-        if e.control.data == spam_to_five_thousand.data and spam_to_five_thousand.value:
-            spam_to_ten_thousand.disabled = True
-            spam_to_fifteen_thousand.disabled = True
-            spam_to_twenty_thousand.disabled = True
-        elif e.control.data == spam_to_ten_thousand.data and spam_to_ten_thousand.value:
-            spam_to_five_thousand.disabled = True
-            spam_to_fifteen_thousand.disabled = True
-            spam_to_twenty_thousand.disabled = True
-        elif e.control.data == spam_to_fifteen_thousand.data and spam_to_fifteen_thousand.value:
-            spam_to_five_thousand.disabled = True
-            spam_to_ten_thousand.disabled = True
-            spam_to_twenty_thousand.disabled = True
-        elif e.control.data == spam_to_twenty_thousand.data and spam_to_twenty_thousand.value:
-            spam_to_five_thousand.disabled = True
-            spam_to_ten_thousand.disabled = True
-            spam_to_fifteen_thousand.disabled = True
-        else:
-            spam_to_five_thousand.disabled = False
-            spam_to_ten_thousand.disabled = False
-            spam_to_fifteen_thousand.disabled = False
-            spam_to_twenty_thousand.disabled = False
-
         page.update()
 
     # SMS to user
@@ -197,13 +140,10 @@ def main_ui(page: ft.Page):
         ]
     )
 
-    # Spam sms
-    spam_to_five_thousand = ft.Checkbox(label="5.000", data=5, on_change=checkboxes_func)
-    spam_to_ten_thousand = ft.Checkbox(label="10.000", data=10, on_change=checkboxes_func)
-    spam_to_fifteen_thousand = ft.Checkbox(label="15.000", data=15, on_change=checkboxes_func)
-    spam_to_twenty_thousand = ft.Checkbox(label="20.000", data=20, on_change=checkboxes_func)
-
     send_spam_sms_btn = ft.ElevatedButton(text="Start Spam", icon=ft.icons.SMS, on_click=send_spam_sms_func)
+    offset_from = ft.TextField(helper_text="From", width=100)
+    offset_to = ft.TextField(helper_text="To", width=100)
+
     spam_sms_panel = ft.Row(
         [
             ft.Column(
@@ -211,15 +151,10 @@ def main_ui(page: ft.Page):
                     header_text,
                     ft.Row(
                         [
-                            spam_to_five_thousand,
-                            spam_to_ten_thousand
+                            offset_from, offset_to
                         ],
-                    ),
-                    ft.Row(
-                        [
-                            spam_to_fifteen_thousand,
-                            spam_to_twenty_thousand
-                        ]
+                        alignment=ft.alignment.center,
+                        spacing=100
                     ),
                     text_input,
                     send_spam_sms_btn,
