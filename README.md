@@ -1,5 +1,3 @@
-Конечно, я добавлю элементы кода из файлов `sms_by_modem.py` и `main.py` в README.
-
 # SMS_APP
 
 SMS_APP is a Python-based application designed to manage and send SMS messages efficiently. It leverages various APIs to provide reliable and scalable SMS services.
